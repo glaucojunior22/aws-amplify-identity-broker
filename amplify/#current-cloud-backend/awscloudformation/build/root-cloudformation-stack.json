@@ -1,0 +1,771 @@
+{
+  "Description": "Root Stack for AWS Amplify CLI",
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Parameters": {
+    "DeploymentBucketName": {
+      "Type": "String",
+      "Default": "DeploymentBucket",
+      "Description": "Name of the common deployment bucket provided by the parent stack"
+    },
+    "AuthRoleName": {
+      "Type": "String",
+      "Default": "AuthRoleName",
+      "Description": "Name of the common deployment bucket provided by the parent stack"
+    },
+    "UnauthRoleName": {
+      "Type": "String",
+      "Default": "UnAuthRoleName",
+      "Description": "Name of the common deployment bucket provided by the parent stack"
+    }
+  },
+  "Outputs": {
+    "Region": {
+      "Description": "CloudFormation provider root stack Region",
+      "Value": {
+        "Ref": "AWS::Region"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-Region"
+        }
+      }
+    },
+    "StackName": {
+      "Description": "CloudFormation provider root stack ID",
+      "Value": {
+        "Ref": "AWS::StackName"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-StackName"
+        }
+      }
+    },
+    "StackId": {
+      "Description": "CloudFormation provider root stack name",
+      "Value": {
+        "Ref": "AWS::StackId"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-StackId"
+        }
+      }
+    },
+    "AuthRoleArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "AuthRole",
+          "Arn"
+        ]
+      }
+    },
+    "UnauthRoleArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "UnauthRole",
+          "Arn"
+        ]
+      }
+    },
+    "DeploymentBucketName": {
+      "Description": "CloudFormation provider root stack deployment bucket name",
+      "Value": {
+        "Ref": "DeploymentBucketName"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-DeploymentBucketName"
+        }
+      }
+    },
+    "AuthRoleName": {
+      "Value": {
+        "Ref": "AuthRole"
+      }
+    },
+    "UnauthRoleName": {
+      "Value": {
+        "Ref": "UnauthRole"
+      }
+    }
+  },
+  "Resources": {
+    "DeploymentBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": {
+          "Ref": "DeploymentBucketName"
+        },
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        }
+      },
+      "UpdateReplacePolicy": "Retain",
+      "DeletionPolicy": "Retain"
+    },
+    "AuthRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "",
+              "Effect": "Deny",
+              "Principal": {
+                "Federated": "cognito-identity.amazonaws.com"
+              },
+              "Action": "sts:AssumeRoleWithWebIdentity"
+            }
+          ]
+        },
+        "RoleName": {
+          "Ref": "AuthRoleName"
+        }
+      }
+    },
+    "UnauthRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "",
+              "Effect": "Deny",
+              "Principal": {
+                "Federated": "cognito-identity.amazonaws.com"
+              },
+              "Action": "sts:AssumeRoleWithWebIdentity"
+            }
+          ]
+        },
+        "RoleName": {
+          "Ref": "UnauthRoleName"
+        }
+      }
+    },
+    "authamplifyIdentityBrokerAuth": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "https://s3.amazonaws.com/amplify-amplify-identity-broker-develop-185234-deployment/amplify-cfn-templates/auth/amplifyIdentityBrokerAuth-cloudformation-template.yml",
+        "Parameters": {
+          "resourceNameTruncated": "brokeraue6c0c3e3",
+          "userPoolName": "brokeruserpool",
+          "autoVerifiedAttributes": "email",
+          "mfaConfiguration": "OPTIONAL",
+          "mfaTypes": "SMS Text Message,TOTP",
+          "smsAuthenticationMessage": "Your authentication code is {####}",
+          "smsVerificationMessage": "Your verification code is {####}",
+          "emailVerificationSubject": "Your verification code",
+          "emailVerificationMessage": "Your verification code is {####}",
+          "defaultPasswordPolicy": false,
+          "passwordPolicyMinLength": 8,
+          "passwordPolicyCharacters": "",
+          "requiredAttributes": "email",
+          "userpoolClientGenerateSecret": true,
+          "userpoolClientRefreshTokenValidity": 30,
+          "userpoolClientWriteAttributes": "email,locale,phone_number,custom:tos_signed,custom:tos_version,custom:newsletter,given_name,family_name,address,birthdate,gender",
+          "userpoolClientReadAttributes": "email,email_verified,locale,phone_number,custom:tos_signed,custom:tos_version,custom:newsletter,given_name,family_name,address,birthdate,gender",
+          "userpoolClientLambdaRole": "brokeraue6c0c3e3_userpoolclient_lambda_role",
+          "userpoolClientSetAttributes": false,
+          "useDefault": "manual",
+          "authSelections": "userPoolOnly",
+          "resourceName": "amplifyIdentityBrokerAuth",
+          "usernameAttributes": "email, phone_number",
+          "userPoolGroups": false,
+          "adminQueries": false,
+          "triggers": "{\"CustomMessage\":[\"custom\"]}",
+          "hostedUI": true,
+          "userPoolGroupList": "",
+          "authRoleArn": {
+            "Fn::GetAtt": [
+              "AuthRole",
+              "Arn"
+            ]
+          },
+          "unauthRoleArn": {
+            "Fn::GetAtt": [
+              "UnauthRole",
+              "Arn"
+            ]
+          },
+          "parentStack": {
+            "Ref": "AWS::StackId"
+          },
+          "permissions": "",
+          "dependsOn": "[object Object],[object Object],[object Object],[object Object]",
+          "hostedUIDomainName": "sconnect2-glauco",
+          "authProvidersUserPool": "",
+          "hostedUIProviderMeta": "[]",
+          "oAuthMetadata": "{\"AllowedOAuthFlows\":[\"code\"],\"AllowedOAuthScopes\":[\"phone\",\"email\",\"openid\",\"profile\",\"aws.cognito.signin.user.admin\"],\"CallbackURLs\":[\"https://injection.placeholder.amazon.com/\"],\"LogoutURLs\":[\"https://injection.placeholder.amazon.com/logout\"]}",
+          "hostedUIProviderCreds": "[]",
+          "functionamplifyIdentityBrokerCustomMessageArn": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerCustomMessage",
+              "Outputs.Arn"
+            ]
+          },
+          "functionamplifyIdentityBrokerCustomMessageName": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerCustomMessage",
+              "Outputs.Name"
+            ]
+          },
+          "functionamplifyIdentityBrokerDefineAuthChallengeArn": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerDefineAuthChallenge",
+              "Outputs.Arn"
+            ]
+          },
+          "functionamplifyIdentityBrokerDefineAuthChallengeName": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerDefineAuthChallenge",
+              "Outputs.Name"
+            ]
+          },
+          "functionamplifyIdentityBrokerVerifyAuthChallengeArn": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerVerifyAuthChallenge",
+              "Outputs.Arn"
+            ]
+          },
+          "functionamplifyIdentityBrokerVerifyAuthChallengeName": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerVerifyAuthChallenge",
+              "Outputs.Name"
+            ]
+          },
+          "functionamplifyIdentityBrokerCreateAuthChallengeArn": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerCreateAuthChallenge",
+              "Outputs.Arn"
+            ]
+          },
+          "functionamplifyIdentityBrokerCreateAuthChallengeName": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerCreateAuthChallenge",
+              "Outputs.Name"
+            ]
+          },
+          "env": "develop"
+        }
+      }
+    },
+    "hostingS3AndCloudFront": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "https://s3.amazonaws.com/amplify-amplify-identity-broker-develop-185234-deployment/amplify-cfn-templates/hosting/template.json",
+        "Parameters": {
+          "bucketName": "sconnect2-amplify-identity-hostingbucket",
+          "apiamplifyIdentityBrokerApiApiDomain": {
+            "Fn::GetAtt": [
+              "apiamplifyIdentityBrokerApi",
+              "Outputs.ApiDomain"
+            ]
+          },
+          "env": "develop"
+        }
+      }
+    },
+    "kmsamplifyIdentityBrokerTokenEncryptionKey": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "https://s3.amazonaws.com/amplify-amplify-identity-broker-develop-185234-deployment/amplify-cfn-templates/kms/amplifyIdentityBrokerTokenEncryptionKey-cloudformation-template.yml",
+        "Parameters": {
+          "resourceNameTruncated": "brokerkms6c0c3e3",
+          "parentStack": {
+            "Ref": "AWS::StackId"
+          },
+          "permissions": "",
+          "dependsOn": "[object Object],[object Object],[object Object]",
+          "functionamplifyIdentityBrokerTokenLambdaExecutionRoleArn": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerToken",
+              "Outputs.LambdaExecutionRoleArn"
+            ]
+          },
+          "functionamplifyIdentityBrokerStorageLambdaExecutionRoleArn": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerStorage",
+              "Outputs.LambdaExecutionRoleArn"
+            ]
+          },
+          "functionamplifyIdentityBrokerAuthorizeLambdaExecutionRoleArn": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerAuthorize",
+              "Outputs.LambdaExecutionRoleArn"
+            ]
+          },
+          "env": "develop"
+        }
+      }
+    },
+    "functionamplifyIdentityBrokerPostDeployment": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "https://s3.amazonaws.com/amplify-amplify-identity-broker-develop-185234-deployment/amplify-cfn-templates/function/amplifyIdentityBrokerPostDeployment-cloudformation-template.json",
+        "Parameters": {
+          "deploymentBucketName": "amplify-amplify-identity-broker-develop-185234-deployment",
+          "s3Key": "amplify-builds/amplifyIdentityBrokerPostDeployment-45424973376f4d777742-build.zip",
+          "authamplifyIdentityBrokerAuthUserPoolId": {
+            "Fn::GetAtt": [
+              "authamplifyIdentityBrokerAuth",
+              "Outputs.UserPoolId"
+            ]
+          },
+          "authamplifyIdentityBrokerAuthAppClientID": {
+            "Fn::GetAtt": [
+              "authamplifyIdentityBrokerAuth",
+              "Outputs.AppClientID"
+            ]
+          },
+          "authamplifyIdentityBrokerAuthAppClientIDWeb": {
+            "Fn::GetAtt": [
+              "authamplifyIdentityBrokerAuth",
+              "Outputs.AppClientIDWeb"
+            ]
+          },
+          "hostingS3AndCloudFrontCloudFrontSecureURL": {
+            "Fn::GetAtt": [
+              "hostingS3AndCloudFront",
+              "Outputs.CloudFrontSecureURL"
+            ]
+          },
+          "functionamplifyIdentityBrokerTokenName": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerToken",
+              "Outputs.Name"
+            ]
+          },
+          "functionamplifyIdentityBrokerStorageName": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerStorage",
+              "Outputs.Name"
+            ]
+          },
+          "functionamplifyIdentityBrokerAuthorizeName": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerAuthorize",
+              "Outputs.Name"
+            ]
+          },
+          "functionamplifyIdentityBrokerCustomMessageName": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerCustomMessage",
+              "Outputs.Name"
+            ]
+          },
+          "functionamplifyIdentityBrokerMigrationName": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerMigration",
+              "Outputs.Name"
+            ]
+          },
+          "functionamplifyIdentityBrokerUserInfoName": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerUserInfo",
+              "Outputs.Name"
+            ]
+          },
+          "functionamplifyIdentityBrokerExposeJWKSName": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerExposeJWKS",
+              "Outputs.Name"
+            ]
+          },
+          "functionamplifyIdentityBrokerVerifyClientName": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerVerifyClient",
+              "Outputs.Name"
+            ]
+          },
+          "functionamplifyIdentityBrokerAccountConfirmationName": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerAccountConfirmation",
+              "Outputs.Name"
+            ]
+          },
+          "functionamplifyIdentityBrokerClientsName": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerClients",
+              "Outputs.Name"
+            ]
+          },
+          "env": "develop"
+        }
+      }
+    },
+    "functionamplifyIdentityBrokerCustomMessage": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "https://s3.amazonaws.com/amplify-amplify-identity-broker-develop-185234-deployment/amplify-cfn-templates/function/amplifyIdentityBrokerCustomMessage-cloudformation-template.json",
+        "Parameters": {
+          "modules": "custom",
+          "resourceName": "amplifyIdentityBrokerCustomMessage",
+          "deploymentBucketName": "amplify-amplify-identity-broker-develop-185234-deployment",
+          "s3Key": "amplify-builds/amplifyIdentityBrokerCustomMessage-59554b546a4179686655-build.zip",
+          "env": "develop"
+        }
+      }
+    },
+    "functionamplifyIdentityBrokerAuthorize": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "https://s3.amazonaws.com/amplify-amplify-identity-broker-develop-185234-deployment/amplify-cfn-templates/function/amplifyIdentityBrokerAuthorize-cloudformation-template.json",
+        "Parameters": {
+          "deploymentBucketName": "amplify-amplify-identity-broker-develop-185234-deployment",
+          "s3Key": "amplify-builds/amplifyIdentityBrokerAuthorize-626d69776d5a7a575658-build.zip",
+          "storageamplifyIdentityBrokerCodesTableName": {
+            "Fn::GetAtt": [
+              "storageamplifyIdentityBrokerCodesTable",
+              "Outputs.Name"
+            ]
+          },
+          "storageamplifyIdentityBrokerCodesTableArn": {
+            "Fn::GetAtt": [
+              "storageamplifyIdentityBrokerCodesTable",
+              "Outputs.Arn"
+            ]
+          },
+          "authamplifyIdentityBrokerAuthUserPoolId": {
+            "Fn::GetAtt": [
+              "authamplifyIdentityBrokerAuth",
+              "Outputs.UserPoolId"
+            ]
+          },
+          "env": "develop"
+        }
+      }
+    },
+    "functionamplifyIdentityBrokerToken": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "https://s3.amazonaws.com/amplify-amplify-identity-broker-develop-185234-deployment/amplify-cfn-templates/function/amplifyIdentityBrokerToken-cloudformation-template.json",
+        "Parameters": {
+          "deploymentBucketName": "amplify-amplify-identity-broker-develop-185234-deployment",
+          "s3Key": "amplify-builds/amplifyIdentityBrokerToken-4b6a6b354c554d4b3934-build.zip",
+          "authamplifyIdentityBrokerAuthAppClientIDWeb": {
+            "Fn::GetAtt": [
+              "authamplifyIdentityBrokerAuth",
+              "Outputs.AppClientIDWeb"
+            ]
+          },
+          "storageamplifyIdentityBrokerCodesTableName": {
+            "Fn::GetAtt": [
+              "storageamplifyIdentityBrokerCodesTable",
+              "Outputs.Name"
+            ]
+          },
+          "storageamplifyIdentityBrokerCodesTableArn": {
+            "Fn::GetAtt": [
+              "storageamplifyIdentityBrokerCodesTable",
+              "Outputs.Arn"
+            ]
+          },
+          "env": "develop"
+        }
+      }
+    },
+    "functionamplifyIdentityBrokerStorage": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "https://s3.amazonaws.com/amplify-amplify-identity-broker-develop-185234-deployment/amplify-cfn-templates/function/amplifyIdentityBrokerStorage-cloudformation-template.json",
+        "Parameters": {
+          "deploymentBucketName": "amplify-amplify-identity-broker-develop-185234-deployment",
+          "s3Key": "amplify-builds/amplifyIdentityBrokerStorage-73622f336f326a5a4769-build.zip",
+          "storageamplifyIdentityBrokerCodesTableName": {
+            "Fn::GetAtt": [
+              "storageamplifyIdentityBrokerCodesTable",
+              "Outputs.Name"
+            ]
+          },
+          "storageamplifyIdentityBrokerCodesTableArn": {
+            "Fn::GetAtt": [
+              "storageamplifyIdentityBrokerCodesTable",
+              "Outputs.Arn"
+            ]
+          },
+          "env": "develop"
+        }
+      }
+    },
+    "functionamplifyIdentityBrokerMigration": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "https://s3.amazonaws.com/amplify-amplify-identity-broker-develop-185234-deployment/amplify-cfn-templates/function/amplifyIdentityBrokerMigration-cloudformation-template.json",
+        "Parameters": {
+          "deploymentBucketName": "amplify-amplify-identity-broker-develop-185234-deployment",
+          "s3Key": "amplify-builds/amplifyIdentityBrokerMigration-646651685a7a45344446-build.zip",
+          "authamplifyIdentityBrokerAuthUserPoolId": {
+            "Fn::GetAtt": [
+              "authamplifyIdentityBrokerAuth",
+              "Outputs.UserPoolId"
+            ]
+          },
+          "authamplifyIdentityBrokerAuthAppClientID": {
+            "Fn::GetAtt": [
+              "authamplifyIdentityBrokerAuth",
+              "Outputs.AppClientID"
+            ]
+          },
+          "env": "develop"
+        }
+      }
+    },
+    "functionamplifyIdentityBrokerUserInfo": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "https://s3.amazonaws.com/amplify-amplify-identity-broker-develop-185234-deployment/amplify-cfn-templates/function/amplifyIdentityBrokerUserInfo-cloudformation-template.json",
+        "Parameters": {
+          "deploymentBucketName": "amplify-amplify-identity-broker-develop-185234-deployment",
+          "s3Key": "amplify-builds/amplifyIdentityBrokerUserInfo-784330543667506f4c74-build.zip",
+          "env": "develop"
+        }
+      }
+    },
+    "functionamplifyIdentityBrokerExposeJWKS": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "https://s3.amazonaws.com/amplify-amplify-identity-broker-develop-185234-deployment/amplify-cfn-templates/function/amplifyIdentityBrokerExposeJWKS-cloudformation-template.json",
+        "Parameters": {
+          "deploymentBucketName": "amplify-amplify-identity-broker-develop-185234-deployment",
+          "s3Key": "amplify-builds/amplifyIdentityBrokerExposeJWKS-622f69485a3631697957-build.zip",
+          "authamplifyIdentityBrokerAuthUserPoolId": {
+            "Fn::GetAtt": [
+              "authamplifyIdentityBrokerAuth",
+              "Outputs.UserPoolId"
+            ]
+          },
+          "env": "develop"
+        }
+      }
+    },
+    "functionamplifyIdentityBrokerVerifyClient": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "https://s3.amazonaws.com/amplify-amplify-identity-broker-develop-185234-deployment/amplify-cfn-templates/function/amplifyIdentityBrokerVerifyClient-cloudformation-template.json",
+        "Parameters": {
+          "deploymentBucketName": "amplify-amplify-identity-broker-develop-185234-deployment",
+          "s3Key": "amplify-builds/amplifyIdentityBrokerVerifyClient-76743163656d2f666446-build.zip",
+          "authamplifyIdentityBrokerAuthUserPoolId": {
+            "Fn::GetAtt": [
+              "authamplifyIdentityBrokerAuth",
+              "Outputs.UserPoolId"
+            ]
+          },
+          "env": "develop"
+        }
+      }
+    },
+    "functionamplifyIdentityBrokerAccountConfirmation": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "https://s3.amazonaws.com/amplify-amplify-identity-broker-develop-185234-deployment/amplify-cfn-templates/function/amplifyIdentityBrokerAccountConfirmation-cloudformation-template.json",
+        "Parameters": {
+          "deploymentBucketName": "amplify-amplify-identity-broker-develop-185234-deployment",
+          "s3Key": "amplify-builds/amplifyIdentityBrokerAccountConfirmation-542b4630503773565346-build.zip",
+          "env": "develop"
+        }
+      }
+    },
+    "functionamplifyIdentityBrokerClients": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "https://s3.amazonaws.com/amplify-amplify-identity-broker-develop-185234-deployment/amplify-cfn-templates/function/amplifyIdentityBrokerClients-cloudformation-template.json",
+        "Parameters": {
+          "deploymentBucketName": "amplify-amplify-identity-broker-develop-185234-deployment",
+          "s3Key": "amplify-builds/amplifyIdentityBrokerClients-594b476f333543653356-build.zip",
+          "storageamplifyIdentityBrokerClientsTableName": {
+            "Fn::GetAtt": [
+              "storageamplifyIdentityBrokerClientsTable",
+              "Outputs.Name"
+            ]
+          },
+          "storageamplifyIdentityBrokerClientsTableArn": {
+            "Fn::GetAtt": [
+              "storageamplifyIdentityBrokerClientsTable",
+              "Outputs.Arn"
+            ]
+          },
+          "env": "develop"
+        }
+      }
+    },
+    "functionamplifyIdentityBrokerDefineAuthChallenge": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "https://s3.amazonaws.com/amplify-amplify-identity-broker-develop-185234-deployment/amplify-cfn-templates/function/amplifyIdentityBrokerDefineAuthChallenge-cloudformation-template.json",
+        "Parameters": {
+          "deploymentBucketName": "amplify-amplify-identity-broker-develop-185234-deployment",
+          "s3Key": "amplify-builds/amplifyIdentityBrokerDefineAuthChallenge-306d6552585634596c7a-build.zip",
+          "env": "develop"
+        }
+      }
+    },
+    "functionamplifyIdentityBrokerVerifyAuthChallenge": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "https://s3.amazonaws.com/amplify-amplify-identity-broker-develop-185234-deployment/amplify-cfn-templates/function/amplifyIdentityBrokerVerifyAuthChallenge-cloudformation-template.json",
+        "Parameters": {
+          "deploymentBucketName": "amplify-amplify-identity-broker-develop-185234-deployment",
+          "s3Key": "amplify-builds/amplifyIdentityBrokerVerifyAuthChallenge-634a534d7365562f4a67-build.zip",
+          "env": "develop"
+        }
+      }
+    },
+    "functionamplifyIdentityBrokerCreateAuthChallenge": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "https://s3.amazonaws.com/amplify-amplify-identity-broker-develop-185234-deployment/amplify-cfn-templates/function/amplifyIdentityBrokerCreateAuthChallenge-cloudformation-template.json",
+        "Parameters": {
+          "deploymentBucketName": "amplify-amplify-identity-broker-develop-185234-deployment",
+          "s3Key": "amplify-builds/amplifyIdentityBrokerCreateAuthChallenge-6352764e583647445649-build.zip",
+          "env": "develop"
+        }
+      }
+    },
+    "apiamplifyIdentityBrokerApi": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "https://s3.amazonaws.com/amplify-amplify-identity-broker-develop-185234-deployment/amplify-cfn-templates/api/amplifyIdentityBrokerApi-cloudformation-template.json",
+        "Parameters": {
+          "authRoleName": {
+            "Ref": "AuthRoleName"
+          },
+          "unauthRoleName": {
+            "Ref": "UnauthRoleName"
+          },
+          "functionamplifyIdentityBrokerAuthorizeName": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerAuthorize",
+              "Outputs.Name"
+            ]
+          },
+          "functionamplifyIdentityBrokerAuthorizeArn": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerAuthorize",
+              "Outputs.Arn"
+            ]
+          },
+          "functionamplifyIdentityBrokerTokenName": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerToken",
+              "Outputs.Name"
+            ]
+          },
+          "functionamplifyIdentityBrokerTokenArn": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerToken",
+              "Outputs.Arn"
+            ]
+          },
+          "functionamplifyIdentityBrokerStorageName": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerStorage",
+              "Outputs.Name"
+            ]
+          },
+          "functionamplifyIdentityBrokerStorageArn": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerStorage",
+              "Outputs.Arn"
+            ]
+          },
+          "functionamplifyIdentityBrokerUserInfoName": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerUserInfo",
+              "Outputs.Name"
+            ]
+          },
+          "functionamplifyIdentityBrokerUserInfoArn": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerUserInfo",
+              "Outputs.Arn"
+            ]
+          },
+          "functionamplifyIdentityBrokerExposeJWKSName": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerExposeJWKS",
+              "Outputs.Name"
+            ]
+          },
+          "functionamplifyIdentityBrokerExposeJWKSArn": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerExposeJWKS",
+              "Outputs.Arn"
+            ]
+          },
+          "functionamplifyIdentityBrokerVerifyClientName": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerVerifyClient",
+              "Outputs.Name"
+            ]
+          },
+          "functionamplifyIdentityBrokerVerifyClientArn": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerVerifyClient",
+              "Outputs.Arn"
+            ]
+          },
+          "functionamplifyIdentityBrokerAccountConfirmationName": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerAccountConfirmation",
+              "Outputs.Name"
+            ]
+          },
+          "functionamplifyIdentityBrokerAccountConfirmationArn": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerAccountConfirmation",
+              "Outputs.Arn"
+            ]
+          },
+          "functionamplifyIdentityBrokerClientsName": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerClients",
+              "Outputs.Name"
+            ]
+          },
+          "functionamplifyIdentityBrokerClientsArn": {
+            "Fn::GetAtt": [
+              "functionamplifyIdentityBrokerClients",
+              "Outputs.Arn"
+            ]
+          },
+          "env": "develop"
+        }
+      }
+    },
+    "storageamplifyIdentityBrokerCodesTable": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "https://s3.amazonaws.com/amplify-amplify-identity-broker-develop-185234-deployment/amplify-cfn-templates/storage/amplifyIdentityBrokerCodesTable-cloudformation-template.json",
+        "Parameters": {
+          "tableName": "amplifyIdentityBrokerCodes",
+          "partitionKeyName": "authorization_code",
+          "partitionKeyType": "S",
+          "env": "develop"
+        }
+      }
+    },
+    "storageamplifyIdentityBrokerClientsTable": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "https://s3.amazonaws.com/amplify-amplify-identity-broker-develop-185234-deployment/amplify-cfn-templates/storage/amplifyIdentityBrokerClientsTable-cloudformation-template.json",
+        "Parameters": {
+          "tableName": "amplifyIdentityBrokerClients",
+          "partitionKeyName": "client_id",
+          "partitionKeyType": "S",
+          "env": "develop"
+        }
+      }
+    }
+  }
+}

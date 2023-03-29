@@ -1,0 +1,12 @@
+{
+  "dev": {
+    "configLevel": "project",
+    "useProfile": false,
+    "awsConfigFilePath": "/home/glauco/.amplify/awscloudformation/7YExIzOMmA"
+  },
+  "develop": {
+    "configLevel": "project",
+    "useProfile": false,
+    "awsConfigFilePath": "/home/glauco/.amplify/awscloudformation/zx7qWLOxdz"
+  }
+}
